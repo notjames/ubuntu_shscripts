@@ -1,0 +1,42 @@
+#!/bin/bash
+# 
+# Jim Conner
+# Under the GPLv2 License
+#
+# http://www.gnu.org/licenses/gpl-2.0.html
+#
+# Copyright (C) 2013 Jim Conner
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# *******************************************************************************
+# Used to determine what USB disks are attached and display their /dev paths.
+
+for dev in /dev/disk/by-id/usb*
+do
+    part=$(echo $dev | grep -Po 'part\d+' | sed 's/part/partition /')
+    actual_device=$(echo ${dev##*/} | \
+                    cut -d : -f 1   | \
+                    perl -ne 's/(.*?)_[a-zA-Z0-9]+-\d$/$1/;s/^usb-//;print')
+    device_link=$(readlink $dev)
+    device=${device_link##*/}
+
+    if [ -z "$part" ]
+    then
+        echo -e "$actual_device -> /dev/$device"
+    else
+        echo -e "$actual_device -> /dev/$device ($part)"
+    fi
+done

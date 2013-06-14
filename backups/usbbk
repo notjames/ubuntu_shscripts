@@ -1,0 +1,179 @@
+#!/bin/bash 
+# Jim Conner
+# Under the GPLv2 License
+#
+# http://www.gnu.org/licenses/gpl-2.0.html
+#
+# Copyright (C) 2013 Jim Conner
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# *******************************************************************************
+## TODO!
+## Add CLI argument to specify sources to be backed up.
+## This script was written for my personal use but is slowly being adapted for 
+## general purpose use. YMMV for your usage. Feel free to contact me if you want
+## help. https://github.com/notjames
+
+# srchost:srcpath^dstpath
+path2bkup[0]="user-1.desktop:/workplace2/work^user-1/"
+path2bkup[1]="$HOME^user-1/"
+path2bkup[2]="/etc^user-1/"
+
+logpath='/var/tmp'
+bkuplog='bkup.log'
+# default device
+# overrides with --device argument
+device='/dev/sdb1'
+remote=0
+
+TEMP=$(getopt -an $0 --long help,force,remote,device: -o hfrd: -- "$@")
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+
+# Note the quotes around `$TEMP': they are essential!
+eval set -- "$TEMP"
+
+if [ $# = 1 ]
+then
+    echo 'You will be backing up local paths.'
+    echo 'Press any key to continue or ctrl+c to quit.'
+    echo
+    read a
+else
+    while true
+    do
+        case $1 in
+            -d|--device) 
+                shift
+                device=$1
+            ;;
+            -r|--remote) 
+                shift
+                remote=1
+            ;;
+            -f|--force)
+                shift
+                force=1
+            ;;
+            -h|--help)
+                shift
+                cat <<EOM
+                Usage: $0 [--device </dev/foo>] [--remote] --help
+
+                * defaults to /dev/sdb1 for the back up device
+                --remote is used to backup user-1.desktop
+                --help - this help message
+EOM
+                exit
+            ;;
+            --) break;;
+            *) shift;;
+        esac
+    done
+fi
+
+function ismounted()
+{
+    udisks --show-info $device | grep 'is mounted' | cut -d : -f 2 | grep -Po '\d'
+}
+
+function isvaliddevice()
+{
+    udisks --show-info $device > /dev/null 2>&1;echo $?
+}
+
+function mountdevice()
+{
+# Mounted /org/freedesktop/UDisks/devices/sdc1 at /media/backup
+    udisks --mount $device > /dev/null 2>1;echo $?
+}
+
+# if the device on the command line used was absolute path
+# then grab the relative device name.
+#device=${device##*/}
+
+if [ ! -z "$remote" -a "$remote" = 1 ]
+then
+    path2bkup[3]="user-ubuntu.sub.domain.com:/etc^ubuntu/"
+ # assuming that $HOME on src and dst host is the same.
+    path2bkup[4]="user-ubuntu.sub.domain.com:/home/path/user/^ubuntu/"
+fi
+
+# Verify that the device is mounted...
+if [ "$(isvaliddevice)" -gt 0 ]
+then
+    echo 'The device you specified is not valid.'
+else
+    if [ "$(ismounted)" = 1 ]
+    then
+# it's mounted, let's make sure it's the right kind of device by checking
+# the space available on the device -- assuming its +1T
+        if [ $(df -h | grep $device | grep -Pc '\d+\.\d+T') = 0 ]
+        then
+            if [ -z $force ]
+            then
+                echo 'Seems that this device '$device' is not valid. Please re-run with '
+                echo '--force to use this device.'
+                exit 2
+            fi
+        else
+            echo 'Mounting drive...'
+
+            if [ "$(mountdevice)" -gt 0 ]
+            then
+                echo 'Hmm. Could not mount the medium. Is it attached? Quitting.'
+                exit 1
+            fi
+        fi
+    else
+        echo 'Mounting drive...'
+
+        if [ "$(mountdevice)" -gt 0 ]
+        then
+            echo 'Hmm. Could not mount the medium. Is it attached? Quitting.'
+            exit 2
+        else
+            echo 'Ok. Backup medium is mounted. Rsyncing now...'
+        fi
+    fi
+
+    basedst="$(udisks --show-info $device | grep 'mount paths' | awk '{print $3}')/"
+
+    if [ ! -z $basedst ]
+    then
+        for src in ${path2bkup[@]}
+        do
+# srchost:srcpath^dstpath
+            if [ $(echo $src | grep -c '^') -gt 0 ]
+            then
+                dst=${basedst}$(echo $src | cut -d '^' -f 2)
+                src=$(echo $src | cut -d '^' -f 1)
+            fi
+
+            if [ $(echo $src | grep -c :) -gt 0 ]
+            then
+                bkupcmd="rsync -rpvzh -e ssh"
+            else
+                bkupcmd='rsync -rpvzh'
+            fi
+
+            logprefix=$(echo $src | cut -d '^' -f 1 | sed 's/^\///' | tr '/:' '-' | sed 's/--/-/g')
+
+            echo 'Backup of '$src' to '$dst'       ...started'
+            echo "Using command: $bkupcmd $src $dst"
+            ($bkupcmd $src $dst > $logpath/$logprefix-$bkuplog 2>&1&)
+        done
+    fi
+fi

@@ -1,6 +1,6 @@
-find_usbdev - more on this later.
+<code>find_usbdev</code> - more on this later.
 
-recfixsymlink - Recursively fix symlinks in the directory from which the script is run
+<code>recfixsymlink</code> - Recursively fix symlinks in the directory from which the script is run
 
 <pre>
 $ recfixsym --help
@@ -21,7 +21,7 @@ Usage: /home/jimconn/bin/recfixsym <--relink to_be_fixed> <--to file_to_link_to>
 --help - this help message : the file to which you're new symlink will be created.
 </pre>
 
-Here's a full directory tree. Notice the symlinks, because that's where I want to focus on. Notice the symlinks, below, called init_vars.tf.
+Here's a full directory tree. Notice the symlinks, because that's where I want to focus on. Notice the symlinks, below, called <code>init_vars.tf</code>.
 
 <pre>
 $ ls -lR
@@ -46,7 +46,7 @@ drwxrwxr-x 2 jimconn jimconn 4096 Dec  2 11:04 .
 </pre>
 
 And a little more localized; let's start here. Notice above in the child directories where the symlinks are pointing to files. The init_vars.tf links are pointing to
-the init_vars.tf file here:
+the <code>init_vars.tf</code> file here:
 <pre>
 $ ls -altr
 total 52
@@ -65,7 +65,7 @@ drwxrwxrwt 31 root    root    12288 Dec  2 10:46 ..
 </pre>
 
 I want to change the name of the init_vars.tf file to <code>variables.tf</code>, but if I do that, all of the symlinked files linked to this file will no longer be valid.
-This script, recfixsym can fix this problem.
+This script, <code>recfixsym</code> can fix this problem.
 
 <pre>
 $ mv init_vars.tf variables.tf
@@ -83,7 +83,7 @@ drwxrwxr-x 2 jimconn jimconn 4096 Dec  2 11:04 monitoring
 drwxrwxr-x 2 jimconn jimconn 4096 Dec  2 11:04 vpc
 </pre>
 
-So, init_vars.tf NO LONGER exists. Thus:
+So, <code>init_vars.tf</code> NO LONGER exists. Thus:
 
 <pre>
 $ ls -ltrR
@@ -107,7 +107,7 @@ drwxrwxr-x 2 jimconn jimconn 4096 Dec  2 11:04 .
 ...
 </pre>
 
-And normally, to fix this, you'd have to write some kind of one-liner or script or come up with some other means to fix this issue. I wrote recfixsym and
+And normally, to fix this, you'd have to write some kind of one-liner or script or come up with some other means to fix this issue. I wrote <code>recfixsym</code> and
 decided to put it out there.
 
 <pre>

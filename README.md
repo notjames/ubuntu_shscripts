@@ -1,4 +1,4 @@
 ubuntu_shscripts
 ================
 
-My Personal Scripts for Ubuntu 12.04 LTS (YMMV)
+My Personal Scripts for Ubuntu 14.04.5 LTS (YMMV)

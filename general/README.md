@@ -2,7 +2,7 @@ find_usbdev - more on this later.
 
 recfixsymlink - Recursively fix symlinks in the directory from which the script is run
 
-<code>
+<pre>
 $ recfixsym --help
 
 Purpose: recursively fix symlinks in the directory tree relative to your PWD, which point
@@ -19,7 +19,7 @@ Usage: /home/jimconn/bin/recfixsym <--relink to_be_fixed> <--to file_to_link_to>
 --to <file_to_link>        : the file to which the new symlink(s) will point.
 --as <filename>            : make the new symlink filename <filename>
 --help - this help message : the file to which you're new symlink will be created.
-</code>
+</pre>
 
 Here's a full directory tree. Notice the symlinks, because that's where I want to focus on. Notice the symlinks, below, called init_vars.tf.
 
@@ -67,7 +67,7 @@ drwxrwxrwt 31 root    root    12288 Dec  2 10:46 ..
 I want to change the name of the init_vars.tf file to <code>variables.tf</code>, but if I do that, all of the symlinked files linked to this file will no longer be valid.
 This script, recfixsym can fix this problem.
 
-<code>
+<pre>
 $ mv init_vars.tf variables.tf
 $ ls -ltr
 total 36
@@ -81,7 +81,7 @@ drwxrwxr-x 2 jimconn jimconn 4096 Dec  2 11:04 global
 drwxrwxr-x 2 jimconn jimconn 4096 Dec  2 11:04 storage
 drwxrwxr-x 2 jimconn jimconn 4096 Dec  2 11:04 monitoring
 drwxrwxr-x 2 jimconn jimconn 4096 Dec  2 11:04 vpc
-</code>
+</pre>
 
 So, init_vars.tf NO LONGER exists. Thus:
 
@@ -110,7 +110,7 @@ drwxrwxr-x 2 jimconn jimconn 4096 Dec  2 11:04 .
 And normally, to fix this, you'd have to write some kind of one-liner or script or come up with some other means to fix this issue. I wrote recfixsym and
 decided to put it out there.
 
-<code>
+<pre>
 $ recfixsym --relink init_vars.tf --to variables.tf
 ...
 ./instances/ramfs:
@@ -126,6 +126,6 @@ total 8
 lrwxrwxrwx 1 jimconn jimconn  31 Dec  2 11:04 terraform.tfvars -> /var/tmp/devel/terraform.tfvars
 lrwxrwxrwx 1 jimconn jimconn  27 Dec  2 11:06 variables.tf -> /var/tmp/devel/variables.tf            << -- valid again
 ...
-</code>
+</pre>
 
 Now one can see that the issue that existed before is now fixed with one command.

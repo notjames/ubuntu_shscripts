@@ -35,10 +35,10 @@ Usage: $0 <--relink to_be_fixed> <--to file_to_link_to> [--as new_symlink_name] 
 
 ** This must run from the directory containing the file to which you are relinking **
 
---relink-this <old symlink>   : the symlink in recursively found directories to be changed.
---to <file_to_link>           : the file to which the new symlink(s) will point.
---as <filename>               : make the new symlink filename <filename>
---help - this help message    : the file to which you're new symlink will be created.
+--relink <old symlink>     : the symlink in recursively found directories to be changed.
+--to <file_to_link>        : the file to which the new symlink(s) will point.
+--as <filename>            : make the new symlink filename <filename>
+--help - this help message : the file to which you're new symlink will be created.
 
 EOM
             exit

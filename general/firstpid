@@ -1,0 +1,30 @@
+#!/bin/bash
+
+pid=$1
+
+[[ -z $pid ]]       && exit 5 || tree=$pid
+[[ $pid =~ ^(0|1)$ ]] && echo "Sorry. You can't pick pid '0' or '1'." && exit 20
+
+get_parent()
+{
+  #set -x
+  local pid=$1
+
+  [[ -z $pid ]] && echo 'Need a pid!' && exit 1
+  ps --no-headers -o ppid $pid | tr -d '[[:blank:]]'
+}
+
+ppid=$(get_parent $pid)
+fp=$pid
+
+[ -z $ppid ] && echo "Invalid PID requested. Gimme something valid." && exit $?
+
+while [ "$ppid" != 0 -a "$ppid" != 1 ]
+do
+  pid=$ppid
+  ppid=$(get_parent $pid)
+
+  fp=$pid
+done
+
+echo $fp
